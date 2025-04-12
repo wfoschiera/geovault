@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from accounts.models import Relationship, User
+from core.models import TechnicianFarmerRelationship, User
 
 from .forms import ProcessedDataForm, RawFileUploadForm
 from .models import ProcessedData, RawFile
@@ -63,7 +63,9 @@ def process_file(request, file_id):
 
     # Check if the technician is related to the farmer who uploaded the file
     if raw_file.uploaded_by.user_type == "FARMER":
-        if not Relationship.objects.filter(technician=request.user, farmer=raw_file.uploaded_by).exists():
+        if not TechnicianFarmerRelationship.objects.filter(
+            technician=request.user, farmer=raw_file.uploaded_by
+        ).exists():
             raise PermissionDenied
 
     if request.method == "POST":

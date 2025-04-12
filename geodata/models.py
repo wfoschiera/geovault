@@ -2,7 +2,7 @@ import os
 
 from django.contrib.gis.db import models
 
-from accounts.models import User
+from core.models import User
 
 
 class RawFile(models.Model):

@@ -3,7 +3,7 @@ import json
 from django import forms
 from django.contrib.gis.geos import GEOSGeometry
 
-from accounts.models import User
+from core.models import User
 
 from .models import ProcessedData, RawFile
 
