@@ -26,6 +26,8 @@ SECRET_KEY = "django-insecure-v!tlfojmd-@8_s4d&*mexuc1nk0ag5k=7j3a=x_4_@&&v^(+u0
 DEBUG = True
 
 ALLOWED_HOSTS = []
+ROLEPERMISSIONS_MODULE = "geovault.roles"
+ROLEPERMISSIONS_SUPERUSER_SUPERPOWERS = False
 
 AUTH_USER_MODEL = "core.User"
 
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rolepermissions",
     "core",
     'accounts',
     'geodata',

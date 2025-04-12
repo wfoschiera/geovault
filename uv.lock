@@ -62,6 +62,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-role-permissions"
+version = "3.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/5b/c2b85791ca63f846ecc33561b9e486cccd8ee3cee906ec694c4e3b7b3f7d/django-role-permissions-3.2.0.tar.gz", hash = "sha256:5a89eaa098f3da951b4633e655d5f3188f3d6ec5f0b846a8b1690d094ddc6ea6", size = 16479 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/21/03/baa0d85a7b82bf8fa02f31627d789f39245841975717fd93a973f1a35afc/django_role_permissions-3.2.0-py3-none-any.whl", hash = "sha256:39c4237e9ed2983c0d7fa38bd7f7c4942a04daac739d5be1921efccb074a0606", size = 12782 },
+]
+
+[[package]]
 name = "geovault"
 version = "0.1.0"
 source = { virtual = "." }
@@ -70,6 +82,7 @@ dependencies = [
     { name = "django-crispy-forms" },
     { name = "django-geojson" },
     { name = "django-leaflet" },
+    { name = "django-role-permissions" },
     { name = "psycopg2-binary" },
     { name = "python-decouple" },
     { name = "ruff" },
@@ -81,6 +94,7 @@ requires-dist = [
     { name = "django-crispy-forms", specifier = ">=2.3" },
     { name = "django-geojson", specifier = ">=4.2.0" },
     { name = "django-leaflet", specifier = ">=0.31.0" },
+    { name = "django-role-permissions", specifier = ">=3.2.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "python-decouple", specifier = ">=3.8" },
     { name = "ruff", specifier = ">=0.11.5" },
