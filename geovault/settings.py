@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-from decouple import config
+
 from pathlib import Path
+
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,14 +44,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rolepermissions",
     "core",
-    'accounts',
-    'geodata',
-    'leaflet',
-    'djgeojson',
-    'crispy_forms',
+    "accounts",
+    "geodata",
+    "leaflet",
+    "djgeojson",
+    "crispy_forms",
 ]
 
-CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -85,13 +87,13 @@ WSGI_APPLICATION = "geovault.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': config('db_name', default='geodb'),
-        'USER': config("db_user", default='postgres'),
-        'PASSWORD': config("db_password", default='postgres'),
-        'HOST': config('db_host', default='localhost'),
-        'PORT': config('db_port', default='25432'),
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": config("db_name", default="geodb"),
+        "USER": config("db_user", default="postgres"),
+        "PASSWORD": config("db_password", default="postgres"),
+        "HOST": config("db_host", default="localhost"),
+        "PORT": config("db_port", default="25432"),
     }
 }
 
@@ -131,8 +133,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
