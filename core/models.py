@@ -150,3 +150,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class TechnicianRelationship(models.Model):
+    technician = models.ForeignKey(
+        User, related_name="farmers", on_delete=models.CASCADE, limit_choices_to={"user_type": "TECHNICIAN"}
+    )
+    farmer = models.ForeignKey(
+        User, related_name="technicians", on_delete=models.CASCADE, limit_choices_to={"user_type": "FARMER"}
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("technician", "farmer")
