@@ -10,4 +10,18 @@ dependencies = [
     "django-geojson>=4.2.0",
     "django-leaflet>=0.31.0",
     "psycopg2-binary>=2.9.10",
+    "ruff>=0.11.5",
+]
+
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+output-format = "grouped"
+lint.extend-select = [
+    "I001",   # unsorted-imports
+    "RUF019", # unnecessary-key-check
+    "RUF100", # unused-noqa
+    "UP006",  # non-pep585-annotation
+    "UP007",  # pep604 int | None = None instead of using Optional.
 ]
