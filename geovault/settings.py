@@ -20,12 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-v!tlfojmd-@8_s4d&*mexuc1nk0ag5k=7j3a=x_4_@&&v^(+u0"
+SECRET_KEY = config("django_secret_key", default="my_hidden_secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
+ROLEPERMISSIONS_MODULE = "geovault.roles"
+ROLEPERMISSIONS_SUPERUSER_SUPERPOWERS = False
 
 AUTH_USER_MODEL = "core.User"
 
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rolepermissions",
     "core",
     'accounts',
     'geodata',
