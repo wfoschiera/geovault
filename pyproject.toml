@@ -28,3 +28,9 @@ lint.extend-select = [
     "UP006",  # non-pep585-annotation
     "UP007",  # pep604 int | None = None instead of using Optional.
 ]
+
+[tool.pytest.ini_options]
+minversion = "8.3.5"
+addopts = "-ra -q"
+testpaths = ["tests"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
