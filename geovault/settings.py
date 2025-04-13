@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-from decouple import config
+
 from pathlib import Path
+
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +28,7 @@ SECRET_KEY = config("django_secret_key", default="my_hidden_secret_key")
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
 ROLEPERMISSIONS_MODULE = "geovault.roles"
 ROLEPERMISSIONS_SUPERUSER_SUPERPOWERS = False
 
@@ -41,15 +44,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rolepermissions",
+    "django_extensions",
     "core",
-    'accounts',
-    'geodata',
-    'leaflet',
-    'djgeojson',
-    'crispy_forms',
+    "accounts",
+    "geodata",
+    "leaflet",
+    "djgeojson",
+    "crispy_forms",
+    "crispy_bootstrap5",
 ]
 
-CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -66,10 +71,11 @@ ROOT_URLCONF = "geovault.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -85,13 +91,13 @@ WSGI_APPLICATION = "geovault.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': config('db_name', default='geodb'),
-        'USER': config("db_user", default='postgres'),
-        'PASSWORD': config("db_password", default='postgres'),
-        'HOST': config('db_host', default='localhost'),
-        'PORT': config('db_port', default='25432'),
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": config("db_name", default="geodb"),
+        "USER": config("db_user", default="postgres"),
+        "PASSWORD": config("db_password", default="postgres"),
+        "HOST": config("db_host", default="localhost"),
+        "PORT": config("db_port", default="25432"),
     }
 }
 
@@ -131,8 +137,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = BASE_DIR / "static"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
