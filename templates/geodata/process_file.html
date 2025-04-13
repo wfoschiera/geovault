@@ -1,0 +1,337 @@
+{% extends "base.html" %} 
+
+{% load crispy_forms_tags %} {% block title %} Process File | GeoVault {% endblock %} 
+
+{% block extra_css %}
+<style>
+    #geometry-editor {
+        height: 500px;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .property-row {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %} {% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">File Information</h5>
+            </div>
+            <div class="card-body">
+                <h5>{{ raw_file.name }}</h5>
+                <p>
+                    <span class="badge bg-secondary"
+                        >{{ raw_file.get_file_type_display }}</span
+                    >
+                    <span class="badge bg-primary"
+                        >{{ raw_file.extension }}</span
+                    >
+                </p>
+                <p>
+                    Uploaded by:
+                    <strong>{{ raw_file.uploaded_by.username }}</strong>
+                </p>
+                <p>Date: {{ raw_file.upload_date|date:"F d, Y" }}</p>
+                {% if raw_file.description %}
+                <p class="mt-3">{{ raw_file.description }}</p>
+                {% endif %}
+                <div class="d-grid mt-4">
+                    <a
+                        href="{{ raw_file.file.url }}"
+                        class="btn btn-outline-primary"
+                        download
+                    >
+                        <i class="fas fa-download"></i> Download Original File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Process Geo Data</h5>
+            </div>
+            <div class="card-body" id="processing-app">
+                <form method="post" @submit="prepareFormData">
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="geometry_data"
+                        v-model="geometryData"
+                    />
+                    <input
+                        type="hidden"
+                        name="properties"
+                        v-model="propertiesJson"
+                    />
+
+                    <div class="mb-3">{{ form.name|as_crispy_field }}</div>
+
+                    <div class="mb-3">
+                        {{ form.description|as_crispy_field }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Geometry Editor</label>
+                        <div id="geometry-editor"></div>
+                        <div class="form-text">
+                            Use the drawing tools to create or edit geographic
+                            features.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Properties</label>
+                        <div
+                            v-for="(value, key, index) in properties"
+                            :key="index"
+                            class="property-row"
+                        >
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    v-model="propertyKeys[index]"
+                                    placeholder="Property name"
+                                />
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    v-model="properties[key]"
+                                    placeholder="Value"
+                                />
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger"
+                                    @click="removeProperty(key)"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary mt-2"
+                            @click="addProperty"
+                        >
+                            <i class="fas fa-plus"></i> Add Property
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Share with Farmers</label>
+                        {{ form.farmers|as_crispy_field }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-info"
+                            @click="loadFile"
+                        >
+                            <i class="fas fa-sync-alt"></i> Load File Data
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Process and Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    // Vue app for the processing interface
+    const processingApp = Vue.createApp({
+        delimiters: ["[[", "]]"],
+        data() {
+            return {
+                map: null,
+                drawnItems: null,
+                geometryData: "",
+                properties: {},
+                propertyKeys: [],
+                rawFilePath: "{{ raw_file.file.url }}",
+            };
+        },
+        computed: {
+            propertiesJson() {
+                return JSON.stringify(this.properties);
+            },
+        },
+        methods: {
+            initMap() {
+                // Initialize the Leaflet map
+                this.map = L.map("geometry-editor").setView([0, 0], 2);
+
+                // Add the base tile layer
+                L.tileLayer(
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    {
+                        attribution:
+                            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    },
+                ).addTo(this.map);
+
+                // Initialize the FeatureGroup to store editable layers
+                this.drawnItems = new L.FeatureGroup();
+                this.map.addLayer(this.drawnItems);
+
+                // Initialize the draw control and pass it the FeatureGroup
+                const drawControl = new L.Control.Draw({
+                    edit: {
+                        featureGroup: this.drawnItems,
+                    },
+                    draw: {
+                        polygon: true,
+                        polyline: true,
+                        rectangle: true,
+                        circle: false,
+                        marker: true,
+                        circlemarker: false,
+                    },
+                });
+                this.map.addControl(drawControl);
+
+                // Event handler for when a new shape is created
+                this.map.on(L.Draw.Event.CREATED, (event) => {
+                    const layer = event.layer;
+                    this.drawnItems.addLayer(layer);
+                    this.updateGeometryData();
+                });
+
+                // Events for when shapes are edited or deleted
+                this.map.on(L.Draw.Event.EDITED, () => {
+                    this.updateGeometryData();
+                });
+
+                this.map.on(L.Draw.Event.DELETED, () => {
+                    this.updateGeometryData();
+                });
+            },
+
+            updateGeometryData() {
+                // Convert the drawn items to GeoJSON
+                const geoJson = this.drawnItems.toGeoJSON();
+
+                if (geoJson.features.length > 0) {
+                    // For simplicity, we'll use the first feature's geometry
+                    // A more complex implementation would handle multiple features
+                    this.geometryData = JSON.stringify(
+                        geoJson.features[0].geometry,
+                    );
+                } else {
+                    this.geometryData = "";
+                }
+            },
+
+            addProperty() {
+                const newKey = `property_${Object.keys(this.properties).length + 1}`;
+                this.$set(this.properties, newKey, "");
+                this.propertyKeys.push(newKey);
+            },
+
+            removeProperty(key) {
+                const index = this.propertyKeys.indexOf(key);
+                if (index > -1) {
+                    this.propertyKeys.splice(index, 1);
+                }
+                this.$delete(this.properties, key);
+            },
+
+            loadFile() {
+                // This function would load and parse the raw file data
+                // For simplicity, we'll just show a message, but in a real app
+                // you would use appropriate libraries to parse shapefiles, GeoJSON, etc.
+                const fileType = "{{ raw_file.file_type }}".toLowerCase();
+
+                fetch(this.rawFilePath)
+                    .then((response) => {
+                        if (fileType === "geojson") {
+                            return response.json();
+                        } else {
+                            alert(
+                                "Automatic parsing for " +
+                                    fileType +
+                                    " is not implemented in this demo. Please use the geometry editor to create features.",
+                            );
+                            throw new Error("Not implemented");
+                        }
+                    })
+                    .then((data) => {
+                        if (data && data.features) {
+                            // Clear existing layers
+                            this.drawnItems.clearLayers();
+
+                            // Add the features to the map
+                            L.geoJSON(data, {
+                                onEachFeature: (feature, layer) => {
+                                    this.drawnItems.addLayer(layer);
+
+                                    // If the feature has properties, add them
+                                    if (feature.properties) {
+                                        this.properties = {
+                                            ...this.properties,
+                                            ...feature.properties,
+                                        };
+                                        this.propertyKeys = Object.keys(
+                                            this.properties,
+                                        );
+                                    }
+                                },
+                            });
+
+                            // Update the geometry data
+                            this.updateGeometryData();
+
+                            // Fit the map to the bounds of the loaded data
+                            this.map.fitBounds(this.drawnItems.getBounds());
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error loading file:", error);
+                    });
+            },
+
+            prepareFormData(event) {
+                // Make sure we have geometry data before submitting
+                if (!this.geometryData) {
+                    event.preventDefault();
+                    alert("Please draw at least one geometry on the map.");
+                }
+
+                // Update properties based on propertyKeys
+                const newProperties = {};
+                this.propertyKeys.forEach((key, index) => {
+                    if (
+                        key &&
+                        this.properties[Object.keys(this.properties)[index]]
+                    ) {
+                        newProperties[key] =
+                            this.properties[
+                                Object.keys(this.properties)[index]
+                            ];
+                    }
+                });
+                this.properties = newProperties;
+            },
+        },
+        mounted() {
+            // Initialize map when the component is mounted
+            this.$nextTick(() => {
+                this.initMap();
+
+                // Add a default property
+                this.addProperty();
+            });
+        },
+    }).mount("#processing-app");
+</script>
+{% endblock %}

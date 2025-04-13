@@ -2,8 +2,10 @@ import json
 
 from django import forms
 from django.contrib.gis.geos import GEOSGeometry
+from rolepermissions.checkers import has_role
 
 from core.models import User
+from geovault.roles import Farmer, FarmerAdmin
 
 from .models import ProcessedData, RawFile
 
@@ -19,9 +21,7 @@ class RawFileUploadForm(forms.ModelForm):
 
 class ProcessedDataForm(forms.ModelForm):
     geometry_data = forms.CharField(widget=forms.HiddenInput(), required=False)
-    farmers = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(user_type="FARMER"), widget=forms.CheckboxSelectMultiple(), required=False
-    )
+    farmers = forms.ModelMultipleChoiceField(queryset=None, widget=forms.CheckboxSelectMultiple(), required=False)
 
     class Meta:
         model = ProcessedData
@@ -33,12 +33,13 @@ class ProcessedDataForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter farmers based on technician relationships
-        if kwargs.get("instance"):
-            technician = kwargs["instance"].processed_by
-            self.fields["farmers"].queryset = User.objects.filter(
-                technicians__technician=technician, user_type="FARMER"
-            )
+
+        users = User.objects.all()
+        farmers = [user for user in users if has_role(user, Farmer) or has_role(user, FarmerAdmin)]
+        farmer_queryset = User.objects.filter(pk__in=[user.pk for user in farmers])
+
+        # Set the queryset
+        self.fields["farmers"].queryset = farmer_queryset
 
     def clean_geometry_data(self):
         data = self.cleaned_data["geometry_data"]

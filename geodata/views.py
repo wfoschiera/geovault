@@ -4,8 +4,10 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from rolepermissions.checkers import has_role
 
 from core.models import TechnicianFarmerRelationship, User
+from geovault.roles import Farmer, Technician
 
 from .forms import ProcessedDataForm, RawFileUploadForm
 from .models import ProcessedData, RawFile
@@ -13,14 +15,14 @@ from .models import ProcessedData, RawFile
 
 @login_required
 def dashboard(request):
-    if request.user.user_type == "FARMER":
+    if has_role(request.user, Farmer):
         raw_files = RawFile.objects.filter(uploaded_by=request.user)
         processed_data = ProcessedData.objects.filter(farmers=request.user)
         return render(
             request, "geodata/farmer_dashboard.html", {"raw_files": raw_files, "processed_data": processed_data}
         )
 
-    elif request.user.user_type == "TECHNICIAN":
+    elif has_role(request.user, Technician):
         # Get all farmers related to this technician
         related_farmers = User.objects.filter(technicians__technician=request.user)
 
@@ -56,13 +58,13 @@ def upload_file(request):
 
 @login_required
 def process_file(request, file_id):
-    if request.user.user_type != "TECHNICIAN":
+    if has_role(request.user, Technician):
         raise PermissionDenied
 
     raw_file = get_object_or_404(RawFile, id=file_id)
 
     # Check if the technician is related to the farmer who uploaded the file
-    if raw_file.uploaded_by.user_type == "FARMER":
+    if has_role(raw_file.uploaded_by, Farmer):
         if not TechnicianFarmerRelationship.objects.filter(
             technician=request.user, farmer=raw_file.uploaded_by
         ).exists():
@@ -92,10 +94,10 @@ def download_processed_data(request, data_id):
     processed_data = get_object_or_404(ProcessedData, id=data_id)
 
     # Check permissions
-    if request.user.user_type == "FARMER":
+    if has_role(request.user, Farmer):
         if request.user not in processed_data.farmers.all():
             raise PermissionDenied
-    elif request.user.user_type == "TECHNICIAN":
+    elif has_role(request.user, Technician):
         if processed_data.processed_by != request.user:
             raise PermissionDenied
 
@@ -116,7 +118,7 @@ def view_data(request, data_id):
     processed_data = get_object_or_404(ProcessedData, id=data_id)
 
     # Check permissions
-    if request.user.user_type == "FARMER":
+    if has_role(request.user, Farmer):
         if request.user not in processed_data.farmers.all():
             raise PermissionDenied
 

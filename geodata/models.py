@@ -1,8 +1,28 @@
 import os
 
 from django.contrib.gis.db import models
+from django.db.models import Q
 
 from core.models import User
+from geovault.roles import Farmer, FarmerAdmin
+
+
+def get_farmer_users_query():
+    """
+    Returns a Q object to filter users with farmer roles.
+    This is used as a callable for limit_choices_to.
+    """
+    # Get the role names
+    farmer_role_names = [Farmer.get_name(), FarmerAdmin.get_name()]
+
+    # Create a query to find users with these roles
+    # The exact implementation depends on how django-role-permissions stores roles
+    # This is the most common pattern - adjust if your setup is different
+    q_objects = Q()
+    for role_name in farmer_role_names:
+        q_objects |= Q(groups__name=role_name)
+
+    return q_objects
 
 
 class RawFile(models.Model):
@@ -44,7 +64,7 @@ class ProcessedData(models.Model):
     properties = models.JSONField(default=dict, blank=True)
 
     # Related farmer(s)
-    farmers = models.ManyToManyField(User, related_name="related_data", limit_choices_to={"user_type": "FARMER"})
+    farmers = models.ManyToManyField(User, related_name="related_data", limit_choices_to=get_farmer_users_query)
 
     def __str__(self):
         return self.name

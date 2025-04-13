@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from rolepermissions.roles import get_user_roles
 
 
 # Create your models here.
@@ -106,11 +107,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     Email and password are required. Other fields are optional.
     """
 
-    USER_TYPE_CHOICES = (
-        ("FARMER", "Farmer"),
-        ("TECHNICIAN", "Technician"),
-        ("ADMIN", "Administrator"),
-    )
     first_name = models.CharField(_("first name"), max_length=150, blank=True)
     last_name = models.CharField(_("last name"), max_length=150, blank=True)
     email = models.EmailField(_("email address"), unique=True)
@@ -119,7 +115,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
     )
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default="FARMER")
     is_active = models.BooleanField(
         _("active"),
         default=True,
@@ -143,6 +138,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
+    def get_user_roles(self):
+        return get_user_roles(self)
+
     def get_full_name(self):
         """
         Return the first_name plus the last_name, with a space in between.
@@ -161,10 +159,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class TechnicianFarmerRelationship(models.Model):
     technician = models.ForeignKey(
-        User, related_name="farmers", on_delete=models.CASCADE, limit_choices_to={"user_type": "TECHNICIAN"}
+        User,
+        related_name="farmers",
+        on_delete=models.CASCADE,
     )
     farmer = models.ForeignKey(
-        User, related_name="technicians", on_delete=models.CASCADE, limit_choices_to={"user_type": "FARMER"}
+        User,
+        related_name="technicians",
+        on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

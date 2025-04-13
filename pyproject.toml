@@ -5,8 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "crispy-bootstrap5>=2025.4",
     "django>=5.2",
     "django-crispy-forms>=2.3",
+    "django-extensions>=4.1",
     "django-geojson>=4.2.0",
     "django-leaflet>=0.31.0",
     "django-role-permissions>=3.2.0",
@@ -35,3 +37,9 @@ minversion = "8.3.5"
 addopts = "-ra -q"
 testpaths = ["tests"]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[dependency-groups]
+dev = [
+    "ipdb>=0.13.13",
+    "ipython>=9.1.0",
+]
