@@ -1,9 +1,8 @@
-{% extends "base.html" %} 
-
-{% load crispy_forms_tags %} {% block title %} Process File | GeoVault {% endblock %} 
-
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Process File | GeoVault{% endblock %}
 {% block extra_css %}
-<style>
+    <style>
     #geometry-editor {
         height: 500px;
         width: 100%;
@@ -12,142 +11,104 @@
     .property-row {
         margin-bottom: 10px;
     }
-</style>
-{% endblock %} {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">File Information</h5>
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">File Information</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ raw_file.name }}</h5>
+                    <p>
+                        <span class="badge bg-secondary">{{ raw_file.get_file_type_display }}</span>
+                        <span class="badge bg-primary">{{ raw_file.extension }}</span>
+                    </p>
+                    <p>
+                        Uploaded by:
+                        <strong>{{ raw_file.uploaded_by.username }}</strong>
+                    </p>
+                    <p>Date: {{ raw_file.upload_date|date:"F d, Y" }}</p>
+                    {% if raw_file.description %}<p class="mt-3">{{ raw_file.description }}</p>{% endif %}
+                    <div class="d-grid mt-4">
+                        <a href="{{ raw_file.file.url }}"
+                           class="btn btn-outline-primary"
+                           download>
+                            <i class="fas fa-download"></i> Download Original File
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <h5>{{ raw_file.name }}</h5>
-                <p>
-                    <span class="badge bg-secondary"
-                        >{{ raw_file.get_file_type_display }}</span
-                    >
-                    <span class="badge bg-primary"
-                        >{{ raw_file.extension }}</span
-                    >
-                </p>
-                <p>
-                    Uploaded by:
-                    <strong>{{ raw_file.uploaded_by.username }}</strong>
-                </p>
-                <p>Date: {{ raw_file.upload_date|date:"F d, Y" }}</p>
-                {% if raw_file.description %}
-                <p class="mt-3">{{ raw_file.description }}</p>
-                {% endif %}
-                <div class="d-grid mt-4">
-                    <a
-                        href="{{ raw_file.file.url }}"
-                        class="btn btn-outline-primary"
-                        download
-                    >
-                        <i class="fas fa-download"></i> Download Original File
-                    </a>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Process Geo Data</h5>
+                </div>
+                <div class="card-body" id="processing-app">
+                    <form method="post" @submit="prepareFormData">
+                        {% csrf_token %}
+                        <input type="hidden" name="geometry_data" v-model="geometryData" />
+                        <input type="hidden" name="properties" v-model="propertiesJson" />
+                        <div class="mb-3">{{ form.name|as_crispy_field }}</div>
+                        <div class="mb-3">{{ form.description|as_crispy_field }}</div>
+                        <div class="mb-4">
+                            <label class="form-label">Geometry Editor</label>
+                            <div id="geometry-editor"></div>
+                            <div class="form-text">
+                                Use the drawing tools to create or edit geographic
+                                features.
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Properties</label>
+                            <div v-for="(value, key, index) in properties"
+                                 :key="index"
+                                 class="property-row">
+                                <div class="input-group">
+                                    <input type="text"
+                                           class="form-control"
+                                           v-model="propertyKeys[index]"
+                                           placeholder="Property name" />
+                                    <input type="text"
+                                           class="form-control"
+                                           v-model="properties[key]"
+                                           placeholder="Value" />
+                                    <button type="button"
+                                            class="btn btn-outline-danger"
+                                            @click="removeProperty(key)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-outline-secondary mt-2"
+                                    @click="addProperty">
+                                <i class="fas fa-plus"></i> Add Property
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Share with Farmers</label>
+                            {{ form.farmers|as_crispy_field }}
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-info" @click="loadFile">
+                                <i class="fas fa-sync-alt"></i> Load File Data
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Process and Save
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">Process Geo Data</h5>
-            </div>
-            <div class="card-body" id="processing-app">
-                <form method="post" @submit="prepareFormData">
-                    {% csrf_token %}
-
-                    <input
-                        type="hidden"
-                        name="geometry_data"
-                        v-model="geometryData"
-                    />
-                    <input
-                        type="hidden"
-                        name="properties"
-                        v-model="propertiesJson"
-                    />
-
-                    <div class="mb-3">{{ form.name|as_crispy_field }}</div>
-
-                    <div class="mb-3">
-                        {{ form.description|as_crispy_field }}
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Geometry Editor</label>
-                        <div id="geometry-editor"></div>
-                        <div class="form-text">
-                            Use the drawing tools to create or edit geographic
-                            features.
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Properties</label>
-                        <div
-                            v-for="(value, key, index) in properties"
-                            :key="index"
-                            class="property-row"
-                        >
-                            <div class="input-group">
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    v-model="propertyKeys[index]"
-                                    placeholder="Property name"
-                                />
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    v-model="properties[key]"
-                                    placeholder="Value"
-                                />
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-danger"
-                                    @click="removeProperty(key)"
-                                >
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            class="btn btn-outline-secondary mt-2"
-                            @click="addProperty"
-                        >
-                            <i class="fas fa-plus"></i> Add Property
-                        </button>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Share with Farmers</label>
-                        {{ form.farmers|as_crispy_field }}
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button
-                            type="button"
-                            class="btn btn-info"
-                            @click="loadFile"
-                        >
-                            <i class="fas fa-sync-alt"></i> Load File Data
-                        </button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Process and Save
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %} {% block scripts %}
-<script>
+{% endblock %}
+{% block scripts %}
+    <script>
     // Vue app for the processing interface
     const processingApp = Vue.createApp({
         delimiters: ["[[", "]]"],
@@ -333,5 +294,5 @@
             });
         },
     }).mount("#processing-app");
-</script>
+    </script>
 {% endblock %}

@@ -1,53 +1,44 @@
-{% extends "base.html" %} {% load crispy_forms_tags %} {% block title %}Register
-| GeoVault{% endblock %} {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">Register for GeoVault</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <fieldset class="mb-3">
-                        <legend class="border-bottom mb-4">
-                            Account Information
-                        </legend>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                {{ form.first_name|as_crispy_field }}
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}
+    Register
+    | GeoVault
+{% endblock %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Register for GeoVault</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <fieldset class="mb-3">
+                            <legend class="border-bottom mb-4">Account Information</legend>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">{{ form.first_name|as_crispy_field }}</div>
+                                <div class="col-md-4 mb-3">{{ form.last_name|as_crispy_field }}</div>
+                                <div class="col-md-4 mb-3">{{ form.email|as_crispy_field }}</div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                {{ form.last_name|as_crispy_field }}
+                            <div class="mb-3">{{ form.role|as_crispy_field }}</div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">{{ form.password1|as_crispy_field }}</div>
+                                <div class="col-md-6 mb-3">{{ form.password2|as_crispy_field }}</div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                {{ form.email|as_crispy_field }}
-                            </div>
+                        </fieldset>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Register</button>
                         </div>
-                        <div class="mb-3">{{ form.role|as_crispy_field }}</div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.password1|as_crispy_field }}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                {{ form.password2|as_crispy_field }}
-                            </div>
-                        </div>
-                    </fieldset>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success">
-                            Register
-                        </button>
-                    </div>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">
-                    Already have an account?
-                    <a href="{% url 'login' %}">Login</a>
-                </p>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">
+                        Already have an account?
+                        <a href="{% url 'login' %}">Login</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

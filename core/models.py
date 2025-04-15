@@ -139,7 +139,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_user_roles(self):
-        return get_user_roles(self)
+        return [role.get_name() for role in get_user_roles(self)]
 
     def get_full_name(self):
         """
