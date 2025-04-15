@@ -1,127 +1,115 @@
-{% extends "base.html" %} 
-
+{% extends "base.html" %}
 {% load permission_tags %}
-
-{% load crispy_forms_tags %} 
-
-{% block title %}Profile|GeoVault{% endblock %} 
-
+{% load crispy_forms_tags %}
+{% block title %}Profile|GeoVault{% endblock %}
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-info text-white">
-                <h4 class="mb-0">User Information</h4>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">User Information</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ user.get_full_name|default:user.email }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <p>
+                        <span class="badge bg-primary">{{ user.get_user_roles }}</span>
+                        <span class="badge bg-secondary">Member since {{ user.date_joined|date }}</span>
+                    </p>
+                </div>
             </div>
-            <div class="card-body">
-                <h5>{{ user.get_full_name|default:user.email }}</h5>
-                <p class="text-muted">{{ user.email }}</p>
-                <p>
-                    <span class="badge bg-primary"
-                        >{{ user.get_user_roles }}</span
-                    >
-                    <span class="badge bg-secondary"
-                        >Member since {{ user.date_joined|date }}</span
-                    >
-                </p>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Update Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <fieldset class="mb-3">
+                            {{ form|crispy }}
+                        </fieldset>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-info">Update</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-info text-white">
-                <h4 class="mb-0">Update Profile</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <fieldset class="mb-3">{{ form|crispy }}</fieldset>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-info">
-                            Update
-                        </button>
+    {% if user|has_role:"Technician" %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Connected Farmers</h4>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% if user|has_role:"Technician" %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow">
-            <div class="card-header bg-secondary text-white">
-                <h4 class="mb-0">Connected Farmers</h4>
-            </div>
-            <div class="card-body">
-                {% if user.farmers.all %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Connected Since</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for relationship in user.farmers.all %}
-                            <tr>
-                                <td>{{ relationship.farmer.username }}</td>
-                                <td>{{ relationship.farmer.email }}</td>
-                                <td>{{ relationship.created_at|date }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="card-body">
+                        {% if user.farmers.all %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Connected Since</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for relationship in user.farmers.all %}
+                                            <tr>
+                                                <td>{{ relationship.farmer.username }}</td>
+                                                <td>{{ relationship.farmer.email }}</td>
+                                                <td>{{ relationship.created_at|date }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-center">You are not connected to any farmers yet.</p>
+                        {% endif %}
+                    </div>
                 </div>
-                {% else %}
-                <p class="text-center">
-                    You are not connected to any farmers yet.
-                </p>
-                {% endif %}
             </div>
         </div>
-    </div>
-</div>
-{% endif %} {% if user|has_role:"Farmer" %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow">
-            <div class="card-header bg-secondary text-white">
-                <h4 class="mb-0">Your Technicians</h4>
-            </div>
-            <div class="card-body">
-                {% if user.technicians.all %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Connected Since</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for relationship in user.technicians.all %}
-                            <tr>
-                                <td>{{ relationship.technician.username }}</td>
-                                <td>{{ relationship.technician.email }}</td>
-                                <td>{{ relationship.created_at|date }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    {% endif %}
+    {% if user|has_role:"Farmer" %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Your Technicians</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if user.technicians.all %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Connected Since</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for relationship in user.technicians.all %}
+                                            <tr>
+                                                <td>{{ relationship.technician.username }}</td>
+                                                <td>{{ relationship.technician.email }}</td>
+                                                <td>{{ relationship.created_at|date }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-center">You are not connected to any technicians yet.</p>
+                        {% endif %}
+                    </div>
                 </div>
-                {% else %}
-                <p class="text-center">
-                    You are not connected to any technicians yet.
-                </p>
-                {% endif %}
             </div>
         </div>
-    </div>
-</div>
-{% endif %} {% endblock %}
+    {% endif %}
+{% endblock %}

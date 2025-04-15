@@ -1,89 +1,55 @@
-{% extends "base.html" %} 
-
-{% load crispy_forms_tags %} {% block title %}Upload File | GeoVault{% endblock %} 
-
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Upload File | GeoVault{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Upload Geographic File</h4>
-            </div>
-            <div class="card-body">
-                <div class="mb-4">
-                    <h5>Supported File Types:</h5>
-                    <div class="d-flex flex-wrap">
-                        <span class="badge bg-info m-1 p-2"
-                            >Shapefile (.shp)</span
-                        >
-                        <span class="badge bg-info m-1 p-2"
-                            >GeoPackage (.gpkg)</span
-                        >
-                        <span class="badge bg-info m-1 p-2">KML (.kml)</span>
-                        <span class="badge bg-info m-1 p-2"
-                            >GeoJSON (.geojson)</span
-                        >
-                        <span class="badge bg-info m-1 p-2">CSV (.csv)</span>
-                        <span class="badge bg-info m-1 p-2">Excel (.xlsx)</span>
-                    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Upload Geographic File</h4>
                 </div>
-
-                <form
-                    method="post"
-                    enctype="multipart/form-data"
-                    id="upload-form"
-                >
-                    {% csrf_token %}
-
-                    <div class="mb-3" id="upload-app">
-                        {{ form.name|as_crispy_field }}
-
-                        <div class="mb-3">
-                            <label
-                                for="{{ form.file_type.id_for_label }}"
-                                class="form-label"
-                                >File Type</label
-                            >
-                            {{ form.file_type }} {% if form.file_type.errors %}
-                            <div class="text-danger">
-                                {{ form.file_type.errors }}
-                            </div>
-                            {% endif %}
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Supported File Types:</h5>
+                        <div class="d-flex flex-wrap">
+                            <span class="badge bg-info m-1 p-2">Shapefile (.shp)</span>
+                            <span class="badge bg-info m-1 p-2">GeoPackage (.gpkg)</span>
+                            <span class="badge bg-info m-1 p-2">KML (.kml)</span>
+                            <span class="badge bg-info m-1 p-2">GeoJSON (.geojson)</span>
+                            <span class="badge bg-info m-1 p-2">CSV (.csv)</span>
+                            <span class="badge bg-info m-1 p-2">Excel (.xlsx)</span>
                         </div>
-
-                        <div class="mb-3">
-                            <label
-                                for="{{ form.file.id_for_label }}"
-                                class="form-label"
-                                >File</label
-                            >
-                            <div class="input-group">
-                                {{ form.file }} {% if form.file.errors %}
-                                <div class="text-danger">
-                                    {{ form.file.errors }}
+                    </div>
+                    <form method="post" enctype="multipart/form-data" id="upload-form">
+                        {% csrf_token %}
+                        <div class="mb-3" id="upload-app">
+                            {{ form.name|as_crispy_field }}
+                            <div class="mb-3">
+                                <label for="{{ form.file_type.id_for_label }}" class="form-label">File Type</label>
+                                {{ form.file_type }}
+                                {% if form.file_type.errors %}<div class="text-danger">{{ form.file_type.errors }}</div>{% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.file.id_for_label }}" class="form-label">File</label>
+                                <div class="input-group">
+                                    {{ form.file }}
+                                    {% if form.file.errors %}<div class="text-danger">{{ form.file.errors }}</div>{% endif %}
                                 </div>
-                                {% endif %}
+                                <div class="form-text" v-if="fileName">Selected file: [[ fileName ]]</div>
                             </div>
-                            <div class="form-text" v-if="fileName">
-                                Selected file: [[ fileName ]]
-                            </div>
+                            {{ form.description|as_crispy_field }}
                         </div>
-
-                        {{ form.description|as_crispy_field }}
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            Upload File
-                        </button>
-                    </div>
-                </form>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Upload File</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %} {% block scripts %}
-<script>
+{% endblock %}
+{% block scripts %}
+    <script>
     // Vue app for file upload interface
     const uploadApp = Vue.createApp({
         delimiters: ["[[", "]]"],
@@ -105,5 +71,5 @@
                 });
         },
     }).mount("#upload-app");
-</script>
+    </script>
 {% endblock %}

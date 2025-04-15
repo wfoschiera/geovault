@@ -1,9 +1,7 @@
-{% extends "base.html" %} 
-
-{% block title %}View Data | GeoVault{% endblock %} 
-
+{% extends "base.html" %}
+{% block title %}View Data | GeoVault{% endblock %}
 {% block extra_css %}
-<style>
+    <style>
     #map-container {
         height: 600px;
         width: 100%;
@@ -12,112 +10,102 @@
         max-height: 600px;
         overflow-y: auto;
     }
-</style>
-{% endblock %} {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2>{{ data.name }}</h2>
-        <p class="text-muted">
-            Processed by {{ data.processed_by.username }} on {{
-            data.created_at|date:"F d, Y" }}
-        </p>
-        {% if data.description %}
-        <p>{{ data.description }}</p>
-        {% endif %}
-    </div>
-    <div class="col-auto">
-        <a href="{% url 'download_data' data.id %}" class="btn btn-success">
-            <i class="fas fa-download"></i> Download Data
-        </a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-9">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Geographic Data Visualization</h5>
-            </div>
-            <div class="card-body p-0">
-                <div id="map-container"></div>
-            </div>
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ data.name }}</h2>
+            <p class="text-muted">
+                Processed by {{ data.processed_by.username }} on {{
+                data.created_at|date:"F d, Y" }}
+            </p>
+            {% if data.description %}<p>{{ data.description }}</p>{% endif %}
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'download_data' data.id %}" class="btn btn-success">
+                <i class="fas fa-download"></i> Download Data
+            </a>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Properties</h5>
-            </div>
-            <div class="card-body property-card">
-                {% if data.properties %}
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Property</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for key, value in data.properties.items %}
-                        <tr>
-                            <td><strong>{{ key }}</strong></td>
-                            <td>{{ value }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-center">
-                    No properties available for this data.
-                </p>
-                {% endif %}
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Geographic Data Visualization</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map-container"></div>
+                </div>
             </div>
         </div>
-
-        <div class="card shadow">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">Metadata</h5>
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Properties</h5>
+                </div>
+                <div class="card-body property-card">
+                    {% if data.properties %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in data.properties.items %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ key }}</strong>
+                                        </td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center">No properties available for this data.</p>
+                    {% endif %}
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li
-                        class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                        Type
-                        <span class="badge bg-primary">
-                            {% if data.geometry.geom_type %} {{
-                            data.geometry.geom_type }} {% else %} Unknown {%
-                            endif %}
-                        </span>
-                    </li>
-                    <li
-                        class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                        Created
-                        <span>{{ data.created_at|date:"M d, Y" }}</span>
-                    </li>
-                    <li
-                        class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                        Last Modified
-                        <span>{{ data.last_modified|date:"M d, Y" }}</span>
-                    </li>
-                    <li
-                        class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                        Shared With
-                        <span class="badge bg-info"
-                            >{{ data.farmers.count }} farmers</span
-                        >
-                    </li>
-                </ul>
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Metadata</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Type
+                            <span class="badge bg-primary">
+                                {% if data.geometry.geom_type %}
+                                    {{
+                                    data.geometry.geom_type }}
+                                {% else %}
+                                    Unknown {%
+                                    endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Created
+                                <span>{{ data.created_at|date:"M d, Y" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Last Modified
+                                <span>{{ data.last_modified|date:"M d, Y" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Shared With
+                                <span class="badge bg-info">{{ data.farmers.count }} farmers</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-{% endblock %} {% block scripts %}
-<script>
+    {% endblock %}
+    {% block scripts %}
+        <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize the map
         const map = L.map('map-container').setView([0, 0], 2);
@@ -155,5 +143,5 @@
             map.fitBounds(geoJsonLayer.getBounds());
         }
     });
-</script>
-{% endblock %}
+        </script>
+    {% endblock %}
