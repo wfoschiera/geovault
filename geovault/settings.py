@@ -93,11 +93,11 @@ WSGI_APPLICATION = "geovault.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": config("db_name", default="geodb"),
-        "USER": config("db_user", default="postgres"),
-        "PASSWORD": config("db_password", default="postgres"),
-        "HOST": config("db_host", default="localhost"),
-        "PORT": config("db_port", default="25432"),
+        "NAME": config("POSTGRES_DB", default="geodb"),
+        "USER": config("POSTGRES_USER", default="postgres"),
+        "PASSWORD": config("POSTGRES_PASSWORD", default="postgres"),
+        "HOST": config("POSTGRES_HOST", default="localhost"),
+        "PORT": config("POSTGRES_PORT", default="5432"),
     }
 }
 
