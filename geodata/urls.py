@@ -8,4 +8,5 @@ urlpatterns = [
     path("process/<int:file_id>/", views.process_file, name="process_file"),
     path("download/<int:data_id>/", views.download_processed_data, name="download_data"),
     path("view/<int:data_id>/", views.view_data, name="view_data"),
+    path("process-raw/", views.process_raw_file, name="process_raw_file"),
 ]

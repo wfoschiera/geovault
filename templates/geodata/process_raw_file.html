@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Process Raw Data | GeoVault{% endblock title %}
+{% block extra_css %}
+    <style>
+        .operation-card {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .operation-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .operation-card.selected {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .operation-details {
+            display: none;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+            margin-top: 15px;
+        }
+    </style>
+{% endblock extra_css %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Process Raw Data File</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Select a raw data file and apply a processing operation to create a processed data record.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <form method="post" id="processing-form">
+                {% csrf_token %}
+                <!-- Step 1: Select Raw File -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Step 1: Select Raw File</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.raw_file|as_crispy_field }}
+                        <div 
+                            id="file-details" 
+                            class="mt-3" 
+                            style="display: none;"
+                        >
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">File Details</h6>
+                                <div id="file-name"></div>
+                                <div id="file-type"></div>
+                                <div id="file-uploader"></div>
+                                <div id="file-date"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Choose Operation -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Step 2: Choose Processing Operation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="operation-card card h-100" data-operation="simplify">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-compress-alt fa-3x mb-3"></i>
+                                        <h5>Simplify Geometry</h5>
+                                        <p class="card-text">Reduce complexity of geometries</p>
+                                        <input type="radio" name="operation" value="simplify" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="operation-card card h-100" data-operation="buffer">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-expand fa-3x mb-3"></i>
+                                        <h5>Buffer Features</h5>
+                                        <p class="card-text">Create buffer zones around features</p>
+                                        <input type="radio" name="operation" value="buffer" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="operation-card card h-100" data-operation="reproject">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-globe fa-3x mb-3"></i>
+                                        <h5>Reproject Data</h5>
+                                        <p class="card-text">Change coordinate reference system</p>
+                                        <input type="radio" name="operation" value="reproject" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="operation-card card h-100" data-operation="extract">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-filter fa-3x mb-3"></i>
+                                        <h5>Extract Properties</h5>
+                                        <p class="card-text">Extract and filter properties</p>
+                                        <input type="radio" name="operation" value="extract" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Operation Parameter -->
+                        <div id="operation-details-simplify" class="operation-details">
+                            <h6>Simplify Geometry</h6>
+                            <p>Reduces the number of vertices in geometries while preserving topology.</p>
+                            <div class="mb-3">
+                                <label for="id_operation_param" class="form-label">Tolerance Value</label>
+                                <input type="range"
+                                       class="form-range"
+                                       id="simplify-range"
+                                       min="0.0001"
+                                       max="0.01"
+                                       step="0.0001"
+                                       value="0.001">
+                                <div class="d-flex justify-content-between">
+                                    <span>Fine (0.0001)</span>
+                                    <span id="simplify-value">0.001</span>
+                                    <span>Coarse (0.01)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="operation-details-buffer" class="operation-details">
+                            <h6>Buffer Features</h6>
+                            <p>Creates a buffer zone around features with a specified distance.</p>
+                            <div class="mb-3">
+                                <label for="id_operation_param" class="form-label">Buffer Distance (degrees)</label>
+                                <input type="range"
+                                       class="form-range"
+                                       id="buffer-range"
+                                       min="0.001"
+                                       max="0.1"
+                                       step="0.001"
+                                       value="0.01">
+                                <div class="d-flex justify-content-between">
+                                    <span>Small (0.001)</span>
+                                    <span id="buffer-value">0.01</span>
+                                    <span>Large (0.1)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="operation-details-reproject" class="operation-details">
+                            <h6>Reproject Data</h6>
+                            <p>This is a placeholder operation. In a real implementation, you would select a target CRS.</p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle"></i> No parameters needed for this dummy operation.
+                            </div>
+                        </div>
+                        <div id="operation-details-extract" class="operation-details">
+                            <h6>Extract Properties</h6>
+                            <p>This is a placeholder operation. In a real implementation, you would select properties to extract.</p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle"></i> No parameters needed for this dummy operation.
+                            </div>
+                        </div>
+                        <!-- Hidden field for operation parameter -->
+                        {{ form.operation_param|as_crispy_field }}
+                    </div>
+                </div>
+                <!-- Step 3: Output Details -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Step 3: Output Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">{{ form.name|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">{{ form.description|as_crispy_field }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-cogs"></i> Process Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
+{% block scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File selection handling
+        const fileSelect = document.getElementById('id_raw_file');
+        const fileDetails = document.getElementById('file-details');
+        
+        fileSelect.addEventListener('change', function() {
+            if (this.value) {
+                // In a real application, you would make an AJAX call to get file details
+                // For this example, we'll simulate it
+                const selectedOption = this.options[this.selectedIndex];
+                const fileName = selectedOption.text;
+                
+                // Display file details (these would come from the AJAX response)
+                document.getElementById('file-name').innerHTML = `<strong>Name:</strong> ${fileName}`;
+                document.getElementById('file-type').innerHTML = '<strong>Type:</strong> Shapefile';
+                document.getElementById('file-uploader').innerHTML = '<strong>Uploaded by:</strong> John Doe';
+                document.getElementById('file-date').innerHTML = '<strong>Date:</strong> 2023-04-15';
+                
+                fileDetails.style.display = 'block';
+            } else {
+                fileDetails.style.display = 'none';
+            }
+        });
+        
+        // Operation selection handling
+        const operationCards = document.querySelectorAll('.operation-card');
+        const operationDetails = document.querySelectorAll('.operation-details');
+        
+        operationCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                operationCards.forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                
+                // Set the radio button value
+                const operation = this.dataset.operation;
+                this.querySelector('input[type="radio"]').checked = true;
+                
+                // Hide all operation details
+                operationDetails.forEach(details => {
+                    details.style.display = 'none';
+                });
+                
+                // Show the selected operation details
+                const detailsElement = document.getElementById(`operation-details-${operation}`);
+                if (detailsElement) {
+                    detailsElement.style.display = 'block';
+                }
+            });
+        });
+        
+        // Parameter sliders
+        const simplifyRange = document.getElementById('simplify-range');
+        const simplifyValue = document.getElementById('simplify-value');
+        const bufferRange = document.getElementById('buffer-range');
+        const bufferValue = document.getElementById('buffer-value');
+        const paramField = document.getElementById('id_operation_param');
+        
+        simplifyRange.addEventListener('input', function() {
+            simplifyValue.textContent = this.value;
+            paramField.value = this.value;
+        });
+        
+        bufferRange.addEventListener('input', function() {
+            bufferValue.textContent = this.value;
+            paramField.value = this.value;
+        });
+        
+        // Form submission
+        document.getElementById('processing-form').addEventListener('submit', function(e) {
+            // Check if an operation is selected
+            const selectedOperation = document.querySelector('input[name="operation"]:checked');
+            if (!selectedOperation) {
+                e.preventDefault();
+                alert('Please select a processing operation.');
+                return;
+            }
+            
+            // Set the operation parameter based on the active slider
+            if (selectedOperation.value === 'simplify') {
+                paramField.value = simplifyRange.value;
+            } else if (selectedOperation.value === 'buffer') {
+                paramField.value = bufferRange.value;
+            }
+        });
+    });
+    </script>
+{% endblock scripts %}

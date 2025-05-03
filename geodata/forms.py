@@ -2,10 +2,11 @@ import json
 
 from django import forms
 from django.contrib.gis.geos import GEOSGeometry
+from django.db.models import Q
 from rolepermissions.checkers import has_role
 
 from core.models import User
-from geovault.roles import Farmer, FarmerAdmin
+from geovault.roles import Farmer, FarmerAdmin, Technician
 
 from .models import ProcessedData, RawFile
 
@@ -64,3 +65,49 @@ class ProcessedDataForm(forms.ModelForm):
             instance.save()
             self.save_m2m()
         return instance
+
+
+class RawFileProcessingForm(forms.Form):  # Changed from ModelForm to Form
+    operation_choices = [
+        ("simplify", "Simplify Geometry"),
+        ("buffer", "Buffer Features"),
+        ("reproject", "Reproject Data"),
+        ("extract", "Extract Properties"),
+    ]
+
+    raw_file = forms.ModelChoiceField(
+        queryset=RawFile.objects.all(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Select Raw File to Process",
+    )
+
+    operation = forms.ChoiceField(
+        choices=operation_choices, widget=forms.RadioSelect(), label="Select Processing Operation"
+    )
+
+    operation_param = forms.FloatField(
+        required=False,
+        label="Operation Parameter",
+        help_text="Parameter value for the selected operation (e.g., buffer distance, simplification tolerance)",
+    )
+
+    name = forms.CharField(max_length=255, label="Output Name")
+    description = forms.CharField(  # Changed from TextField to CharField
+        required=False, widget=forms.Textarea(attrs={"rows": 4})
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            if has_role(user, Technician):
+                # Get farmers related to this technician
+                related_farmers = User.objects.filter(technicians__technician=user)
+                # Get all raw files from related farmers and files uploaded by the technician
+                self.fields["raw_file"].queryset = RawFile.objects.filter(
+                    Q(uploaded_by__in=related_farmers) | Q(uploaded_by=user)
+                )
+            else:
+                # If a farmer, only show their files
+                self.fields["raw_file"].queryset = RawFile.objects.filter(uploaded_by=user)

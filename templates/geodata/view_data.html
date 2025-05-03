@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}View Data | GeoVault{% endblock %}
+{% block title %}View Data | GeoVault{% endblock title %}
 {% block extra_css %}
     <style>
     #map-container {
@@ -11,7 +11,7 @@
         overflow-y: auto;
     }
     </style>
-{% endblock %}
+{% endblock extra_css %}
 {% block content %}
     <div class="row mb-4">
         <div class="col">
@@ -103,7 +103,7 @@
                 </div>
             </div>
         </div>
-    {% endblock %}
+    {% endblock content %}
     {% block scripts %}
         <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -144,4 +144,4 @@
         }
     });
         </script>
-    {% endblock %}
+    {% endblock scripts %}

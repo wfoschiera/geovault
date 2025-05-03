@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Process File | GeoVault{% endblock %}
+{% block title %}Process File | GeoVault{% endblock title %}
 {% block extra_css %}
     <style>
     #geometry-editor {
@@ -12,7 +12,7 @@
         margin-bottom: 10px;
     }
     </style>
-{% endblock %}
+{% endblock extra_css %}
 {% block content %}
     <div class="row">
         <div class="col-md-4">
@@ -295,4 +295,4 @@
         },
     }).mount("#processing-app");
     </script>
-{% endblock %}
+{% endblock scripts %}

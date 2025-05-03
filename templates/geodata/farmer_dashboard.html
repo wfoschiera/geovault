@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Farmer Dashboard | GeoVault{% endblock %}
+{% block title %} Farmer Dashboard | GeoVault
+{% endblock title %}
 {% block content %}
     <div class="row mb-4">
         <div class="col">
@@ -9,6 +10,9 @@
         <div class="col-auto">
             <a href="{% url 'upload_file' %}" class="btn btn-primary">
                 <i class="fas fa-upload"></i> Upload New File
+            </a>
+            <a href="{% url 'process_raw_file' %}" class="btn btn-warning">
+                <i class="fas fa-cogs"></i> Process Raw Data
             </a>
         </div>
     </div>
@@ -41,9 +45,9 @@
                                             <td>{{ file.upload_date|date:"M d, Y" }}</td>
                                             <td>
                                                 <a href="{{ file.file.url }}"
-                                                   class="btn btn-sm btn-outline-primary"
-                                                   download>
-                                                    <i class="fas fa-download"></i>
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    download>
+                                                    <i class="fas fa-arrow-down"></i>
                                                 </a>
                                             </td>
                                         </tr>
@@ -83,7 +87,7 @@
                                                     <i class="fas fa-eye"></i> View
                                                 </a>
                                                 <a href="{% url 'download_data' data.id %}"
-                                                   class="btn btn-sm btn-success">
+                                                    class="btn btn-sm btn-success">
                                                     <i class="fas fa-download"></i> Download
                                                 </a>
                                             </div>
@@ -102,4 +106,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
+{% endblock content %}

@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 import geopandas as gpd
 import pandas as pd
@@ -61,3 +62,58 @@ def convert_raw_to_geojson(file_path):
 
     except Exception as e:
         raise ValueError(f"Error processing file: {str(e)}")
+
+
+def apply_dummy_operation(geojson_data, operation, param=None):
+    """
+    Apply a dummy operation to simulate data processing on a GeoJSON object
+
+    Args:
+        geojson_data: GeoJSON data (as dictionary)
+        operation: The operation to perform (simplify, buffer, etc.)
+        param: Optional parameter for the operation
+
+    Returns:
+        dict: Processed GeoJSON data
+    """
+    try:
+        # Convert the geojson back to a GeoDataFrame
+        gdf = gpd.GeoDataFrame.from_features(geojson_data["features"])
+
+        # Apply the dummy operation
+        if operation == "simplify":
+            # Simulate simplifying geometries (reducing complexity)
+            tolerance = param or 0.001
+            gdf["geometry"] = gdf["geometry"].simplify(tolerance)
+
+        elif operation == "buffer":
+            # Simulate buffering features
+            distance = param or 0.01  # degrees
+            gdf["geometry"] = gdf["geometry"].buffer(distance)
+
+        elif operation == "reproject":
+            # Just a dummy operation that doesn't actually change projection
+            gdf["geometry"] = gdf["geometry"]
+            # In a real operation, you might do:
+            # gdf = gdf.to_crs(new_crs)
+
+        elif operation == "extract":
+            # Dummy operation to simulate extracting only certain properties
+            # Just returns the original data in this example
+            pass
+
+        # Add a property to indicate processing was done
+        for i in range(len(gdf)):
+            if "properties" not in gdf.iloc[i] or gdf.iloc[i]["properties"] is None:
+                gdf.iloc[i]["properties"] = {}
+            props = gdf.iloc[i]["properties"]
+            props["processed_with"] = operation
+            props["process_param"] = str(param) if param is not None else "default"
+            props["process_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Convert back to GeoJSON
+        result = json.loads(gdf.to_json())
+        return result
+
+    except Exception as e:
+        raise ValueError(f"Error applying operation: {str(e)}")
